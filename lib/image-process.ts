@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import sharp, { ResizeOptions } from "sharp";
 import { randomBytes } from "crypto";
 import { uploadToR2, deleteFromR2, getKeyFromUrl } from "./r2";
 
@@ -32,7 +32,7 @@ export async function processAndUploadImage(
   let mimeType = `image/${originalFormat}`;
 
   if (originalFormat === "jpeg") {
-    extension = "jpg";
+    extension = "jpeg";
     mimeType = "image/jpeg";
   } else if (originalFormat === "png") {
     extension = "png";
@@ -44,7 +44,7 @@ export async function processAndUploadImage(
 
   // ৩. একটি হেল্পার ফাংশন তৈরি করুন যা ডায়নামিকভাবে বাফার তৈরি করবে
   const processBuffer = async (
-    resizeOptions?: sharp.ResizeOptions,
+    resizeOptions?: ResizeOptions,
     quality: number = 85,
   ) => {
     let pipeline = sharp(fileBuffer);

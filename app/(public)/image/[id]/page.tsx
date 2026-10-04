@@ -38,10 +38,11 @@ export default async function SingleImagePage({
       </div>
       <div className='container mx-auto px-4 mt-5 py-10'>
         <div className='grid grid-cols-12 gap-10'>
-          <div className='col-span-8'>
-            <div className='relative aspect-[3/2] bg-transparent rounded-2xl  overflow-hidden'>
+          <div className='col-span-12 lg:col-span-6 xl:col-span-8'>
+            <div className='relative aspect-[3/2] bg-transparent   overflow-hidden'>
               <Image
-                src={image.largeUrl || image.mediumUrl}
+                // src={image.largeUrl || image.mediumUrl}
+                src={image.largeUrl}
                 alt={image.alt || image.title}
                 fill
                 className='object-contain object-top'
@@ -49,10 +50,14 @@ export default async function SingleImagePage({
                 sizes='(max-width: 1024px) 100vw, 50vw'
               />
             </div>
+
+            <div className='hidden lg:block '>
+              <SimilarImages id={String(image._id)} />
+            </div>
           </div>
 
-          <div className='col-span-4 ml-[50px] '>
-            <div className='border p-5 rounded-lg'>
+          <div className='col-span-12 lg:col-span-6 xl:col-span-4 ml-[20px] '>
+            <div className='border p-5 rounded-lg relative lg:sticky  top-[20px]'>
               <h1 className='text-[20px] font-bold mb-3'>{image.title}</h1>
               {image.description && (
                 <p className='text-gray-600 mb-5'>{image.description}</p>
@@ -127,10 +132,12 @@ export default async function SingleImagePage({
                 </div>
               </div>
             </div>
+
+            <div className='block lg:hidden mt-[60px]'>
+              <SimilarImages id={String(image._id)} />
+            </div>
           </div>
         </div>
-
-        <SimilarImages id={String(image._id)} />
       </div>
 
       {/* Footer */}

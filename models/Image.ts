@@ -29,7 +29,13 @@ const ImageSchema = new Schema<IImage>(
     alt: { type: String, default: "" },
     tags: { type: [String], default: [], index: true },
     category: { type: String, default: "uncategorized", index: true },
-    slug: { type: String, required: true, unique: true, lowercase: true, index: true },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      index: true,
+    },
     originalUrl: { type: String, required: true },
     largeUrl: { type: String, required: true },
     mediumUrl: { type: String, required: true },
@@ -47,10 +53,15 @@ const ImageSchema = new Schema<IImage>(
       index: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true, versionKey: false },
 );
 
-ImageSchema.index({ title: "text", description: "text", tags: "text", alt: "text" });
+ImageSchema.index({
+  title: "text",
+  description: "text",
+  tags: "text",
+  alt: "text",
+});
 ImageSchema.index({ status: 1, createdAt: -1 });
 ImageSchema.index({ category: 1, status: 1, createdAt: -1 });
 

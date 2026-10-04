@@ -2,17 +2,22 @@
 
 import { useTransition } from "react";
 import { deleteImageAction } from "@/actions/delete";
+import { confirmDelete, showSuccess, showError } from "@/lib/swal";
 
 export default function DeleteButton({ imageId }: { imageId: string }) {
   const [isPending, startTransition] = useTransition();
 
-  const handleDelete = () => {
-    if (!confirm("Are you sure you want to delete this image?")) return;
+  const handleDelete = async () => {
+    const ok = await confirmDelete("This image will be permanently deleted.");
+    if (!ok) return;
 
     startTransition(async () => {
       const result = await deleteImageAction(imageId);
-      if (!result.success) {
-        alert(result.message);
+
+      if (result.success) {
+        await showSuccess("Deleted!", result.message);
+      } else {
+        await showError("Error", result.message);
       }
     });
   };

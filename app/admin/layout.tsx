@@ -34,13 +34,19 @@ export default async function AdminLayout({
             Dashboard
           </Link>
           <Link href='/admin/upload' className='hover:text-blue-600'>
-            Upload
+            Single Upload
+          </Link>
+          <Link href='/admin/bulk-upload' className='hover:text-blue-600'>
+            Bulk Upload
           </Link>
           <Link href='/admin/images' className='hover:text-blue-600'>
             All Images
           </Link>
           <Link href='/' className='hover:text-blue-600'>
             View Site
+          </Link>
+          <Link href='/admin/settings' className='hover:text-blue-600'>
+            Settings
           </Link>
         </nav>
         <form action='/api/auth/signout' method='POST'>
