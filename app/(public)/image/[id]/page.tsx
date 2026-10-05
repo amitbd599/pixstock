@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SimilarImages from "@/components/SimilarImages";
@@ -20,6 +21,58 @@ async function getImage(id: string) {
   }
 }
 
+// ✅ Dynamic Metadata
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const image = await getImage(id);
+
+  if (!image) {
+    return {
+      title: "Image not found - PixStock",
+    };
+  }
+
+  const title = `${image.title} - Free Stock Photo | PixStock`;
+  const description =
+    image.description?.slice(0, 160) ||
+    `Download ${image.title} for free. High quality stock photo from PixStock.`;
+
+  const imageUrl = image.largeUrl || image.mediumUrl || image.thumbnailUrl;
+  const pageUrl = `${process.env.NEXT_PUBLIC_APP_URL}/image/${image.slug || image._id}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: pageUrl,
+      images: [
+        {
+          url: imageUrl,
+          width: image.width || 1200,
+          height: image.height || 630,
+          alt: image.alt || image.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+    alternates: {
+      canonical: pageUrl,
+    },
+  };
+}
+
 export default async function SingleImagePage({
   params,
 }: {
@@ -29,14 +82,12 @@ export default async function SingleImagePage({
   const image = await getImage(id);
   if (!image) notFound();
 
-  console.log(image);
-
   return (
     <main>
       <div className='bg-gray-900 py-[20px]'>
         <SearchBar />
       </div>
-      <div className='container mx-auto px-4 mt-5 py-10'>
+      <div className='container mx-auto  mt-5 py-[80px]'>
         <div className='grid grid-cols-12 gap-10'>
           <div className='col-span-12 lg:col-span-6 xl:col-span-8'>
             <div className='relative aspect-[3/2] bg-transparent   overflow-hidden'>

@@ -1,5 +1,6 @@
 import SearchBar from "@/components/SearchBar";
 import ImageGrid from "@/components/ImageGrid";
+import Footer from "@/components/Footer";
 
 async function searchImages(q: string) {
   try {
@@ -30,12 +31,15 @@ export default async function SearchPage({
       <div className='bg-gray-900 py-[20px]'>
         <SearchBar />
       </div>
-      <div className='container mx-auto'>
+      <div className='container mx-auto py-[60px]'>
         <h1 className='text-2xl font-semibold mt-10 mb-6'>
           {q ? `Results for "${q}"` : "Search images"}
         </h1>
         <ImageGrid images={images} />
       </div>
+
+      {/* Footer */}
+      <Footer />
     </main>
   );
 }

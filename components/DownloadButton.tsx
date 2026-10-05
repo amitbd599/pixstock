@@ -40,7 +40,7 @@ export default function DownloadButton({ imageId }: DownloadButtonProps) {
       {/* Download Options */}
       <div>
         <Select value={quality} onValueChange={handleQualityChange}>
-          <SelectTrigger className='h-[40px] w-[40px] rounded-l-none rounded-r-xl outline-none border-none focus:ring-0 focus:ring-transparent bg-emerald-500/100 text-white cus-select'>
+          <SelectTrigger className='h-[40px] w-[40px] rounded-l-none rounded-r-xl outline-none border-none focus:ring-0 focus:ring-transparent bg-emerald-500/90 hover:bg-emerald-500/100 text-white cus-select ease-in-out duration-300 transition'>
             {/* <SelectValue /> */}
           </SelectTrigger>
 

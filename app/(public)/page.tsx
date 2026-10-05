@@ -44,7 +44,7 @@ export default async function HomePage({
         <SearchBar />
       </div>
 
-      <div className='container mx-auto px-4 py-10'>
+      <div className='container mx-auto py-[60px]'>
         <div className='mt-12'>
           <ImageGrid images={images} />
         </div>
