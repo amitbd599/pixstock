@@ -18,9 +18,9 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    proxyClientMaxBodySize: "20mb", // proxy.ts er buffer limit
+    proxyClientMaxBodySize: "200mb", // proxy.ts er buffer limit
     serverActions: {
-      bodySizeLimit: "20mb", // server action er limit
+      bodySizeLimit: "200mb", // server action er limit
     },
   },
 };
