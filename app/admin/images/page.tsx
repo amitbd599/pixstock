@@ -1,67 +1,44 @@
-import type { Metadata } from "next";
 import dbConnect from "@/lib/db";
 import Image from "@/models/Image";
-import SearchBar from "@/components/SearchBar";
-import ImageGrid from "@/components/ImageGrid";
-import Pagination from "@/components/Pagination";
-import Footer from "@/components/Footer";
+import Link from "next/link";
+import ImageTableClient from "@/components/admin/ImageTableClient";
 
-const PAGE_SIZE = 24;
-
-export const metadata: Metadata = {
-  title: "Free Stock Images - High Quality Photos | Pixstock",
-  description:
-    "Download free high-quality stock images for personal and commercial use. Explore thousands of free photos, nature images, people, lifestyle photos and more on Pixstock.",
-  keywords: [
-    "free stock images",
-    "free stock photos",
-    "free images",
-    "free photos",
-    "royalty free images",
-    "free image download",
-    "high quality images",
-    "Pixstock",
-  ],
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    title: "Free Stock Images - High Quality Photos | Pixstock",
-    description:
-      "Download free high-quality stock images for personal and commercial use on Pixstock.",
-    url: "/",
-    siteName: "Pixstock",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Free Stock Images - High Quality Photos | Pixstock",
-    description:
-      "Download free high-quality stock images for personal and commercial use on Pixstock.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+const PAGE_SIZE = 50;
 
 async function getImages(page: number) {
   await dbConnect();
 
   const [images, total] = await Promise.all([
-    Image.find({ status: "published" })
+    Image.find()
       .sort({ createdAt: -1 })
       .skip((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
       .lean(),
-
-    Image.countDocuments({ status: "published" }),
+    Image.countDocuments(),
   ]);
 
   return { images, total };
 }
 
-export default async function HomePage({
+function getPageNumbers(current: number, totalPages: number) {
+  const pages: (number | "...")[] = [];
+  const delta = 1;
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= current - delta && i <= current + delta)
+    ) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== "...") {
+      pages.push("...");
+    }
+  }
+  return pages;
+}
+
+export default async function AdminImagesPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>;
@@ -69,48 +46,100 @@ export default async function HomePage({
   const { page: pageParam } = await searchParams;
 
   const requestedPage = Math.max(1, parseInt(pageParam || "1", 10) || 1);
-
   const { images, total } = await getImages(requestedPage);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
   const page = Math.min(requestedPage, totalPages);
 
+  const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const to = Math.min(page * PAGE_SIZE, total);
+
+  const pageHref = (p: number) => `/admin/images?page=${p}`;
+
+  // Client component-এর জন্য data clean করা
   const clientImages = images.map((img: any) => ({
     _id: String(img._id),
     title: img.title,
-    description: img.description,
-    alt: img.alt,
-    tags: img.tags,
-    category: img.category,
     slug: img.slug,
-
-    originalUrl: img.originalUrl,
-    largeUrl: img.largeUrl,
-    mediumUrl: img.mediumUrl,
     thumbnailUrl: img.thumbnailUrl,
-
-    width: img.width,
-    height: img.height,
     views: img.views,
     downloads: img.downloads,
+    status: img.status,
   }));
 
   return (
-    <main>
-      <div className='bg-gray-900 py-[20px]'>
-        <SearchBar />
+    <div>
+      <div className='flex items-center justify-between mb-6'>
+        <h1 className='text-2xl font-bold'>All Images ({total})</h1>
+        <Link
+          href='/admin/upload'
+          className='bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700'
+        >
+          + Upload New
+        </Link>
       </div>
 
-      <div className='container mx-auto py-[60px]'>
-        <div className='mt-12'>
-          <ImageGrid images={clientImages} />
+      {/* Table + Bulk Actions */}
+      <ImageTableClient images={clientImages} />
+
+      {/* Pagination */}
+      {total > 0 && (
+        <div className='flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 mt-4 border rounded-xl bg-gray-50'>
+          <p className='text-sm text-gray-600'>
+            Showing {from}-{to} of {total}
+          </p>
+
+          {totalPages > 1 && (
+            <nav className='flex items-center gap-1'>
+              {page > 1 ? (
+                <Link
+                  href={pageHref(page - 1)}
+                  className='px-3 py-1.5 rounded-lg border bg-white text-sm hover:bg-gray-100'
+                >
+                  Previous
+                </Link>
+              ) : (
+                <span className='px-3 py-1.5 rounded-lg border bg-gray-100 text-sm text-gray-400 cursor-not-allowed'>
+                  Previous
+                </span>
+              )}
+
+              {getPageNumbers(page, totalPages).map((p, i) =>
+                p === "..." ? (
+                  <span key={`dots-${i}`} className='px-2 text-gray-400'>
+                    ...
+                  </span>
+                ) : (
+                  <Link
+                    key={p}
+                    href={pageHref(p)}
+                    className={`px-3 py-1.5 rounded-lg border text-sm ${
+                      p === page
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-white hover:bg-gray-100"
+                    }`}
+                  >
+                    {p}
+                  </Link>
+                ),
+              )}
+
+              {page < totalPages ? (
+                <Link
+                  href={pageHref(page + 1)}
+                  className='px-3 py-1.5 rounded-lg border bg-white text-sm hover:bg-gray-100'
+                >
+                  Next
+                </Link>
+              ) : (
+                <span className='px-3 py-1.5 rounded-lg border bg-gray-100 text-sm text-gray-400 cursor-not-allowed'>
+                  Next
+                </span>
+              )}
+            </nav>
+          )}
         </div>
-
-        {total > 0 && <Pagination currentPage={page} totalPages={totalPages} />}
-      </div>
-
-      <Footer />
-    </main>
+      )}
+    </div>
   );
 }
