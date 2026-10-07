@@ -6,7 +6,7 @@ import ImageGrid from "@/components/ImageGrid";
 import Pagination from "@/components/Pagination";
 import Footer from "@/components/Footer";
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 30;
 
 export const metadata: Metadata = {
   title: "Free Stock Images - High Quality Photos | Pixstock",
