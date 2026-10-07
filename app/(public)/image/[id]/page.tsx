@@ -141,7 +141,7 @@ export default async function SingleImagePage({
         <div className='grid grid-cols-12 gap-10'>
           {/* Image */}
           <div className='col-span-12 lg:col-span-6 xl:col-span-8'>
-            <div className='relative aspect-[3/2] overflow-hidden bg-transparent'>
+            <div className='relative aspect-[3/2] overflow-hidden bg-gray-100'>
               <Image
                 src={image.largeUrl}
                 alt={image.alt || image.title}
