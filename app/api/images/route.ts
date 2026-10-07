@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
         .sort(sortOption)
         .skip(skip)
         .limit(limit)
-        .select("title slug thumbnailUrl mediumUrl width height views downloads category tags createdAt")
+        .select(
+          "title slug originalUrl largeUrl thumbnailUrl mediumUrl width height views downloads category tags createdAt",
+        )
         .lean(),
       Image.countDocuments(filter),
     ]);
@@ -55,6 +57,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ success: false, message: "Failed to fetch images" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Failed to fetch images" },
+      { status: 500 },
+    );
   }
 }
