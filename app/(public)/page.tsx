@@ -9,17 +9,31 @@ async function getImages(page: number) {
 
     const limit = 24;
 
-    const res = await fetch(`${base}/api/images?page=${page}&limit=${limit}`, {
+    const url = `${base}/api/images?page=${page}&limit=${limit}`;
+
+    console.log("Fetching images from:", url);
+
+    const res = await fetch(url, {
       next: { revalidate: 60 },
     });
 
+    console.log("API status:", res.status);
+
+    if (!res.ok) {
+      throw new Error(`API returned ${res.status}`);
+    }
+
     const data = await res.json();
+
+    console.log("API data:", data);
 
     return {
       images: data.success ? data.data : [],
       pagination: data.pagination || null,
     };
-  } catch {
+  } catch (error) {
+    console.error("getImages failed:", error);
+
     return {
       images: [],
       pagination: null,
