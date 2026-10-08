@@ -79,17 +79,21 @@ export default async function AnalyticsPage({
     ? Number((await searchParams).days)
     : 28;
 
-  let ga: Awaited<ReturnType<typeof getAnalytics>> | null = null;
-  let gsc: Awaited<ReturnType<typeof getSearch>> | null = null;
-  const errors: string[] = [];
-  await Promise.all([
-    getAnalytics(days)
-      .then((r) => (ga = r))
-      .catch((e) => errors.push("Analytics: " + e.message)),
-    getSearch(days)
-      .then((r) => (gsc = r))
-      .catch((e) => errors.push("Search Console: " + e.message)),
+  const [gaRes, gscRes] = await Promise.allSettled([
+    getAnalytics(days),
+    getSearch(days),
   ]);
+  const ga = gaRes.status === "fulfilled" ? gaRes.value : null;
+  const gsc = gscRes.status === "fulfilled" ? gscRes.value : null;
+  const errors: string[] = [];
+  if (gaRes.status === "rejected")
+    errors.push(
+      "Analytics: " + (gaRes.reason?.message ?? String(gaRes.reason)),
+    );
+  if (gscRes.status === "rejected")
+    errors.push(
+      "Search Console: " + (gscRes.reason?.message ?? String(gscRes.reason)),
+    );
 
   const max = ga ? Math.max(1, ...ga.daily.map((d) => d.values[1])) : 1;
 
