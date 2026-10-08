@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+import NextTopLoader from "nextjs-toploader";
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "PixStock - Free Stock Photos",
@@ -16,8 +16,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='en' className={cn("font-sans", geist.variable)}>
-      <body className='bg-white text-gray-900 antialiased'>{children}</body>
+    <html
+      lang='en'
+      className={cn("font-sans", geist.variable)}
+      suppressHydrationWarning
+    >
+      <body className='bg-white text-gray-900 antialiased'>
+        <NextTopLoader
+          color='#34D39C'
+          height={2}
+          showSpinner={false}
+          crawlSpeed={600}
+          shadow='0 0 10px #10b981, 0 0 5px #10b981'
+        />
+        {children}
+      </body>
     </html>
   );
 }

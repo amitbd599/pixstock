@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-
 import dbConnect from "@/lib/db";
 import ImageModel from "@/models/Image";
 
@@ -125,7 +124,7 @@ export default async function SearchPage({
 
   return (
     <main>
-      <div className='bg-gray-900 py-[20px]'>
+      <div>
         <SearchBar />
       </div>
 

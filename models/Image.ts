@@ -7,6 +7,7 @@ export interface IImage extends Document {
   tags: string[];
   category?: string;
   slug: string;
+  previewUrl: string;
   originalUrl: string;
   largeUrl: string;
   mediumUrl: string;
@@ -36,6 +37,7 @@ const ImageSchema = new Schema<IImage>(
       lowercase: true,
       index: true,
     },
+    previewUrl: { type: String, required: true },
     originalUrl: { type: String, required: true },
     largeUrl: { type: String, required: true },
     mediumUrl: { type: String, required: true },

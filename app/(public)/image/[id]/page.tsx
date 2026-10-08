@@ -60,6 +60,7 @@ export async function generateMetadata({
     `Download ${image.title} for free. High-quality stock photo from Pixstock.`;
 
   const imageUrl =
+    image.previewUrl ||
     image.largeUrl ||
     image.mediumUrl ||
     image.originalUrl ||
@@ -133,7 +134,7 @@ export default async function SingleImagePage({
 
   return (
     <main>
-      <div className='bg-gray-900 py-[20px]'>
+      <div>
         <SearchBar />
       </div>
 
@@ -143,7 +144,7 @@ export default async function SingleImagePage({
           <div className='col-span-12 lg:col-span-6 xl:col-span-8'>
             <div className='relative aspect-[3/2] overflow-hidden bg-gray-100'>
               <Image
-                src={image.largeUrl}
+                src={image.previewUrl}
                 alt={image.alt || image.title}
                 fill
                 className='object-contain object-top'

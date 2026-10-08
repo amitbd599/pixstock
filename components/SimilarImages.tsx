@@ -44,7 +44,7 @@ async function getSimilar(id: string) {
       })
       .limit(LIMIT)
       .select(
-        "title slug thumbnailUrl mediumUrl width height views downloads category tags",
+        "title slug previewUrl thumbnailUrl mediumUrl width height views downloads category tags",
       )
       .lean();
 
@@ -54,6 +54,7 @@ async function getSimilar(id: string) {
       slug: img.slug,
       thumbnailUrl: img.thumbnailUrl,
       mediumUrl: img.mediumUrl,
+      previewUrl: img.previewUrl,
       width: img.width,
       height: img.height,
       views: img.views,

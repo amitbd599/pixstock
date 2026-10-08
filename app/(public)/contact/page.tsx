@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <main>
-      <div className='bg-gray-900 py-[20px]'>
+      <div>
         <SearchBar />
       </div>
       <div className='container mx-auto py-[100px]'>

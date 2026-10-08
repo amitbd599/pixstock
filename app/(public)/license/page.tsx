@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function LicensePage() {
   return (
     <main>
-      <div className='bg-gray-900 py-[20px]'>
+      <div>
         <SearchBar />
       </div>
 

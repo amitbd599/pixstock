@@ -25,7 +25,7 @@ export type UploadState = {
 
 export async function uploadImageAction(
   prevState: UploadState,
-  formData: FormData
+  formData: FormData,
 ): Promise<UploadState> {
   try {
     const rawData = {
@@ -74,7 +74,10 @@ export async function uploadImageAction(
     }
 
     const tagsArray = validated.data.tags
-      ? validated.data.tags.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean)
+      ? validated.data.tags
+          .split(",")
+          .map((t) => t.trim().toLowerCase())
+          .filter(Boolean)
       : [];
 
     const newImage = await Image.create({

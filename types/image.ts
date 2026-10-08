@@ -6,6 +6,7 @@ export interface ImageType {
   tags: string[];
   category?: string;
   slug: string;
+  previewUrl: string;
   originalUrl: string;
   largeUrl: string;
   mediumUrl: string;

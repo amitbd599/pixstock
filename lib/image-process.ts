@@ -1,8 +1,9 @@
-import sharp, { ResizeOptions } from "sharp";
+import sharp from "sharp";
 import { randomBytes } from "crypto";
 import { uploadToR2, deleteFromR2, getKeyFromUrl } from "./r2";
-
+type SharpInstance = ReturnType<typeof sharp>;
 export interface ProcessedImage {
+  previewUrl: string;
   originalUrl: string;
   largeUrl: string;
   mediumUrl: string;
@@ -13,95 +14,81 @@ export interface ProcessedImage {
   format: string;
 }
 
+type Fit = {
+  width: number;
+  height: number;
+  fit: "inside";
+  withoutEnlargement: true;
+};
+const box = (n: number): Fit => ({
+  width: n,
+  height: n,
+  fit: "inside",
+  withoutEnlargement: true,
+});
+
+const FORMATS: Record<string, { ext: string; mime: string }> = {
+  jpeg: { ext: "jpeg", mime: "image/jpeg" },
+  png: { ext: "png", mime: "image/png" },
+  webp: { ext: "webp", mime: "image/webp" },
+};
+
 export async function processAndUploadImage(
   fileBuffer: Buffer,
 ): Promise<ProcessedImage> {
-  const uniqueId = randomBytes(16).toString("hex");
-  const basePath = `images/${uniqueId}`;
+  const basePath = `images/${randomBytes(16).toString("hex")}`;
 
-  const metadata = await sharp(fileBuffer).metadata();
-  const width = metadata.width || 0;
-  const height = metadata.height || 0;
-  const size = fileBuffer.length;
+  const meta = await sharp(fileBuffer).metadata();
+  const format = meta.format && FORMATS[meta.format] ? meta.format : "jpeg";
+  const { ext, mime } = FORMATS[format];
 
-  // ১. আসল ফরম্যাটটি বের করে নিন (jpeg, png, webp, etc.)
-  const originalFormat = metadata.format || "jpeg";
+  // EXIF অনুযায়ী ছবি ঘোরানো থাকলে (orientation 5-8) width/height উল্টে যায়
+  const rotated = (meta.orientation ?? 1) >= 5;
+  const width = (rotated ? meta.height : meta.width) || 0;
+  const height = (rotated ? meta.width : meta.height) || 0;
 
-  // ২. ফরম্যাট অনুযায়ী এক্সটেনশন এবং MIME টাইপ সেট করুন
-  let extension = originalFormat;
-  let mimeType = `image/${originalFormat}`;
+  // রিসাইজ করা ছবির পাইপলাইন (rotate() দিয়ে সঠিক দিক নিশ্চিত)
+  const resize = (n: number) => sharp(fileBuffer).rotate().resize(box(n));
 
-  if (originalFormat === "jpeg") {
-    extension = "jpeg";
-    mimeType = "image/jpeg";
-  } else if (originalFormat === "png") {
-    extension = "png";
-    mimeType = "image/png";
-  } else if (originalFormat === "webp") {
-    extension = "webp";
-    mimeType = "image/webp";
-  }
+  // ডাউনলোডের জন্য: আসল ফরম্যাটে
+  const toOriginalFormat = (p: SharpInstance, quality: number) =>
+    format === "png"
+      ? p.png({ compressionLevel: 9 }).toBuffer()
+      : format === "webp"
+        ? p.webp({ quality }).toBuffer()
+        : p.jpeg({ quality, mozjpeg: true }).toBuffer();
 
-  // ৩. একটি হেল্পার ফাংশন তৈরি করুন যা ডায়নামিকভাবে বাফার তৈরি করবে
-  const processBuffer = async (
-    resizeOptions?: ResizeOptions,
-    quality: number = 85,
-  ) => {
-    let pipeline = sharp(fileBuffer);
+  // ওয়েবসাইটে দেখানোর জন্য: সবসময় WebP (ছোট ফাইল, দ্রুত লোড)
+  const toWebp = (p: SharpInstance, quality: number) =>
+    p.webp({ quality }).toBuffer();
 
-    if (resizeOptions) {
-      pipeline = pipeline.resize(resizeOptions);
-    }
+  const [largeBuffer, previewBuffer, mediumBuffer, thumbnailBuffer] =
+    await Promise.all([
+      toOriginalFormat(resize(1920), 85),
+      toWebp(resize(1600), 80),
+      toWebp(resize(1000), 80),
+      toWebp(resize(400), 75),
+    ]);
 
-    // ফরম্যাট অনুযায়ী কনভার্ট করুন
-    if (originalFormat === "jpeg") {
-      return await pipeline.jpeg({ quality }).toBuffer();
-    } else if (originalFormat === "png") {
-      // PNG এর জন্য quality কাজ করে না, এটি lossless কম্প্রেশন ব্যবহার করে
-      return await pipeline.png({ compressionLevel: 9 }).toBuffer();
-    } else if (originalFormat === "webp") {
-      return await pipeline.webp({ quality }).toBuffer();
-    } else {
-      // অন্য কোনো ফরম্যাট হলে (যেমন gif, tiff) সেটি জেপিজিতে কনভার্ট করে ফেলুন
-      return await pipeline.jpeg({ quality }).toBuffer();
-    }
-  };
-
-  // ৪. ডায়নামিক ফরম্যাটে বাফার তৈরি করুন
-  const originalBuffer = await processBuffer(undefined, 90);
-
-  const largeBuffer = await processBuffer(
-    { width: 1920, height: 1920, fit: "inside", withoutEnlargement: true },
-    85,
-  );
-
-  const mediumBuffer = await processBuffer(
-    { width: 1000, height: 1000, fit: "inside", withoutEnlargement: true },
-    80,
-  );
-
-  const thumbnailBuffer = await processBuffer(
-    { width: 400, height: 400, fit: "inside", withoutEnlargement: true },
-    75,
-  );
-
-  // ৫. R2 তে আপলোড করার সময় ডায়নামিক এক্সটেনশন এবং MIME টাইপ ব্যবহার করুন
-  const [originalUrl, largeUrl, mediumUrl, thumbnailUrl] = await Promise.all([
-    uploadToR2(`${basePath}/original.${extension}`, originalBuffer, mimeType),
-    uploadToR2(`${basePath}/large.${extension}`, largeBuffer, mimeType),
-    uploadToR2(`${basePath}/medium.${extension}`, mediumBuffer, mimeType),
-    uploadToR2(`${basePath}/thumbnail.${extension}`, thumbnailBuffer, mimeType),
-  ]);
+  const [originalUrl, largeUrl, previewUrl, mediumUrl, thumbnailUrl] =
+    await Promise.all([
+      uploadToR2(`${basePath}/original.${ext}`, fileBuffer, mime), // হুবহু অরিজিনাল, কোনো রি-এনকোড নয়
+      uploadToR2(`${basePath}/large.${ext}`, largeBuffer, mime),
+      uploadToR2(`${basePath}/preview.webp`, previewBuffer, "image/webp"),
+      uploadToR2(`${basePath}/medium.webp`, mediumBuffer, "image/webp"),
+      uploadToR2(`${basePath}/thumbnail.webp`, thumbnailBuffer, "image/webp"),
+    ]);
 
   return {
     originalUrl,
     largeUrl,
     mediumUrl,
     thumbnailUrl,
+    previewUrl,
     width,
     height,
-    size,
-    format: extension, // ডেটাবেজে সেভ করার জন্য আসল ফরম্যাট
+    size: fileBuffer.length,
+    format: ext,
   };
 }
 
@@ -110,12 +97,18 @@ export async function deleteImageVersions(urls: {
   largeUrl: string;
   mediumUrl: string;
   thumbnailUrl: string;
+  previewUrl?: string;
 }) {
-  const keys = [
-    getKeyFromUrl(urls.originalUrl),
-    getKeyFromUrl(urls.largeUrl),
-    getKeyFromUrl(urls.mediumUrl),
-    getKeyFromUrl(urls.thumbnailUrl),
+  const all = [
+    urls.originalUrl,
+    urls.largeUrl,
+    urls.mediumUrl,
+    urls.thumbnailUrl,
+    urls.previewUrl,
   ];
-  await Promise.all(keys.map((key) => deleteFromR2(key)));
+  await Promise.all(
+    all
+      .filter((u): u is string => !!u)
+      .map((u) => deleteFromR2(getKeyFromUrl(u))),
+  );
 }

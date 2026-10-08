@@ -85,6 +85,7 @@ export default async function HomePage({
     category: img.category,
     slug: img.slug,
 
+    previewUrl: img.previewUrl,
     originalUrl: img.originalUrl,
     largeUrl: img.largeUrl,
     mediumUrl: img.mediumUrl,
@@ -98,7 +99,7 @@ export default async function HomePage({
 
   return (
     <main>
-      <div className='bg-gray-900 py-[20px]'>
+      <div>
         <SearchBar />
       </div>
 

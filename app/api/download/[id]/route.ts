@@ -2,81 +2,81 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db";
 import Image from "@/models/Image";
+import { verifyCaptcha } from "@/lib/captcha";
+
+export const dynamic = "force-dynamic";
+
+type Size = "original" | "large" | "medium" | "thumbnail";
+
+const URL_FIELD: Record<
+  Size,
+  "originalUrl" | "largeUrl" | "mediumUrl" | "thumbnailUrl"
+> = {
+  original: "originalUrl",
+  large: "largeUrl",
+  medium: "mediumUrl",
+  thumbnail: "thumbnailUrl",
+};
+
+const json = (message: string, status: number) =>
+  NextResponse.json({ success: false, message }, { status });
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const sp = request.nextUrl.searchParams;
+
+    // ১. আগে ক্যাপচা যাচাই (ডাটাবেসে যাওয়ার আগেই বট আটকানো)
+    if (!verifyCaptcha(sp.get("ans"), sp.get("exp"), sp.get("sig"))) {
+      return json("Captcha required", 403);
+    }
+
+    // ২. ডাউনলোডের সাইজ বাছাই (অজানা মান হলে original)
+    const requested = sp.get("type") as Size | null;
+    const type: Size =
+      requested && requested in URL_FIELD ? requested : "original";
+
+    // ৩. ছবি খোঁজা (id বা slug), শুধু published
     await dbConnect();
-
     const { id } = await params;
+    const image = await Image.findOne(
+      mongoose.Types.ObjectId.isValid(id)
+        ? { _id: id, status: "published" }
+        : { slug: id, status: "published" },
+    );
+    if (!image) return json("Image not found", 404);
 
-    const image = mongoose.Types.ObjectId.isValid(id)
-      ? await Image.findById(id)
-      : await Image.findOne({ slug: id });
+    // ৪. URL নির্ধারণ (কোনো সাইজ না থাকলে original-এ ফিরে যাবে)
+    const downloadUrl: string = image[URL_FIELD[type]] || image.originalUrl;
 
-    if (!image) {
-      return NextResponse.json(
-        { success: false, message: "Image not found" },
-        { status: 404 },
-      );
-    }
+    // ৫. R2 থেকে ছবি আনা
+    const upstream = await fetch(downloadUrl, { cache: "no-store" });
+    if (!upstream.ok || !upstream.body)
+      return json("Failed to fetch image", 502);
 
-    // Download type
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type") || "original";
+    // ৬. সফল হলে তবেই কাউন্ট বাড়ানো
+    await Image.updateOne({ _id: image._id }, { $inc: { downloads: 1 } });
 
-    let downloadUrl = image.originalUrl;
+    // ৭. ফাইলের নাম: এক্সটেনশন আসল ফাইলের URL থেকে (medium/thumbnail এখন WebP হয়)
+    const ext = new URL(downloadUrl).pathname.split(".").pop() || "jpg";
+    const safeSlug = String(image.slug).replace(/[^a-z0-9-]/gi, "");
+    const filename = `${safeSlug}-${type}.${ext}`;
 
-    if (type === "large") {
-      downloadUrl = image.largeUrl;
-    }
+    const headers: Record<string, string> = {
+      "Content-Type":
+        upstream.headers.get("content-type") || "application/octet-stream",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
+    };
+    const length = upstream.headers.get("content-length");
+    if (length) headers["Content-Length"] = length;
 
-    if (type === "medium") {
-      downloadUrl = image.mediumUrl;
-    }
-
-    if (type === "thumbnail") {
-      downloadUrl = image.thumbnailUrl;
-    }
-
-    // Fetch image from R2
-    const response = await fetch(downloadUrl);
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { success: false, message: "Failed to fetch image" },
-        { status: 500 },
-      );
-    }
-
-    const buffer = await response.arrayBuffer();
-
-    // Download count
-    await Image.findByIdAndUpdate(image._id, {
-      $inc: { downloads: 1 },
-    });
-
-    const filename = `${image.slug}-${type}.${image.format || "webp"}`;
-
-    return new NextResponse(buffer, {
-      headers: {
-        "Content-Type": response.headers.get("content-type") || "image/webp",
-
-        "Content-Disposition": `attachment; filename="${filename}"`,
-
-        "Content-Length": buffer.byteLength.toString(),
-
-        "Cache-Control": "no-store",
-      },
-    });
+    // ৮. স্ট্রিম করে পাঠানো (বড় ছবি মেমরিতে জমা হয় না)
+    return new NextResponse(upstream.body, { headers });
   } catch (error) {
     console.error("Download error:", error);
-
-    return NextResponse.json(
-      { success: false, message: "Download failed" },
-      { status: 500 },
-    );
+    return json("Download failed", 500);
   }
 }
