@@ -3,6 +3,7 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import NextTopLoader from "nextjs-toploader";
+import Track from "@/components/Track";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className='bg-white text-gray-900 antialiased'>
+        <Track />
         <NextTopLoader
           color='#34D39C'
           height={2}
