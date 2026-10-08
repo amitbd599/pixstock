@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import NextTopLoader from "nextjs-toploader";
 import Track from "@/components/Track";
+import Script from "next/script";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -32,6 +33,19 @@ export default function RootLayout({
           shadow='0 0 10px #10b981, 0 0 5px #10b981'
         />
         {children}
+
+        <Script
+          src='https://www.googletagmanager.com/gtag/js?id=G-4NQHQHG1DZ'
+          strategy='afterInteractive'
+        />
+        <Script id='ga-init' strategy='afterInteractive'>
+          {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4NQHQHG1DZ');
+  `}
+        </Script>
       </body>
     </html>
   );

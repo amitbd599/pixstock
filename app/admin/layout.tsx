@@ -15,7 +15,7 @@ export default async function AdminLayout({
   return (
     <div className='min-h-screen bg-gray-50 md:flex'>
       <AdminSidebar email={session.user?.email} />
-      <main className=' py-4'>
+      <main className='w-full py-4'>
         <div className='container mx-auto py-4'>{children}</div>
       </main>
     </div>

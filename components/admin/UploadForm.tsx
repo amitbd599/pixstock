@@ -9,7 +9,7 @@ export default function UploadForm() {
   const [state, action, pending] = useActionState(uploadImageAction, initial);
 
   return (
-    <form action={action} className='space-y-5 max-w-xl'>
+    <form action={action} className='space-y-5 max-w-5xl'>
       <div>
         <label className='block text-sm font-medium mb-1'>Title *</label>
         <input
