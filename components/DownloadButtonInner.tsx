@@ -82,13 +82,13 @@ export default function DownloadButtonInner({ imageId }: { imageId: string }) {
 
   return (
     <>
-      <div className='absolute right-0 top-0 z-10 p-3'>
+      <div className='absolute right-0 top-0 z-0 p-3'>
         <button
           type='button'
           onClick={openCaptcha}
           aria-label='Download image'
           title='Download'
-          className='group/dl relative grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-gray-100 shadow-lg shadow-black/20 backdrop-blur transition duration-300 ease-out hover:-translate-y-0.5 hover:border-emerald-400/60 hover:bg-gradient-to-br hover:from-emerald-500 hover:to-teal-500 hover:text-white hover:shadow-emerald-500/30 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/30 active:translate-y-0 active:scale-95'
+          className='group/dl relative grid h-11 w-11 place-items-center rounded-full border-2 border-white/20 bg-white/10 text-gray-800 shadow-lg shadow-black/20 backdrop-blur transition duration-300 ease-out hover:-translate-y-0.5   hover:to-teal-500 hover:text-gray-900  focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/30 active:translate-y-0 active:scale-95'
         >
           <svg
             xmlns='http://www.w3.org/2000/svg'

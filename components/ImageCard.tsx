@@ -51,7 +51,7 @@ export default function ImageCard({ image, isPriority = false }: Props) {
     <div className='relative mb-4 break-inside-avoid'>
       <Link
         href={imageHref}
-        className='group relative block overflow-hidden rounded-lg bg-gray-100'
+        className='group relative block ease-linear duration-300 overflow-hidden rounded-lg bg-gray-100'
         aria-label={`View image: ${title}`}
       >
         {imageUrl ? (
@@ -63,7 +63,7 @@ export default function ImageCard({ image, isPriority = false }: Props) {
             sizes={IMAGE_SIZES}
             loading={isPriority ? "eager" : "lazy"}
             fetchPriority={isPriority ? "high" : "auto"}
-            className='block h-auto w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none'
+            className='block h-auto w-full object-cover transition-transform duration-300 group-hover:scale-105 '
           />
         ) : (
           <div
@@ -77,7 +77,7 @@ export default function ImageCard({ image, isPriority = false }: Props) {
 
         {imageUrl && (
           <>
-            <div className='pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100' />
+            <div className='pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 transition-opacity ease-linear duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 ' />
 
             <p className='pointer-events-none absolute inset-x-0 bottom-0 translate-y-full truncate px-3 pb-3 text-base font-medium text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100'>
               {title}

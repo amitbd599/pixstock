@@ -129,7 +129,7 @@ export default async function SearchPage({
         <SearchBar />
       </div>
 
-      <div className='container mx-auto py-[60px]'>
+      <div className='container mx-auto py-[20px] md:py-[40px]'>
         <h1 className='mt-10 mb-6 text-2xl font-semibold'>
           {query ? `Results for "${query}"` : "Search free stock images"}
         </h1>

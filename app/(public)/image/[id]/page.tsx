@@ -138,8 +138,8 @@ export default async function SingleImagePage({
         <SearchBar />
       </div>
 
-      <div className='container mx-auto mt-5 py-[80px]'>
-        <div className='grid grid-cols-12 gap-10'>
+      <div className='container mx-auto mt-5 py-[30px]  md:py-[80px]'>
+        <div className='md:grid grid-cols-12 gap-10'>
           {/* Image */}
           <div className='col-span-12 lg:col-span-6 xl:col-span-8'>
             <div className='relative aspect-[3/2] overflow-hidden bg-gray-100'>
@@ -159,7 +159,7 @@ export default async function SingleImagePage({
           </div>
 
           {/* Information */}
-          <div className='col-span-12 ml-[20px] lg:col-span-6 xl:col-span-4'>
+          <div className='col-span-12 md:ml-[20px] lg:col-span-6 xl:col-span-4'>
             <div className='relative rounded-lg border p-5 lg:sticky top-[20px]'>
               <h1 className='mb-3 text-[20px] font-bold'>{image.title}</h1>
 
