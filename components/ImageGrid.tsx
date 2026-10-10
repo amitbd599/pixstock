@@ -1,15 +1,18 @@
-import ImageCard from "./ImageCard";
+import ImageCard, { type PixstockImage } from "./ImageCard";
 
-export default function ImageGrid({ images }: { images: any[] }) {
+interface ImageGridProps {
+  images: PixstockImage[];
+}
+
+export default function ImageGrid({ images }: ImageGridProps) {
   if (!images?.length) {
-    return <p className='text-center text-gray-500 py-20'>No images found</p>;
+    return <p className='py-20 text-center text-gray-500'>No images found</p>;
   }
 
   return (
-    // CSS Columns ব্যবহার করে Masonry লেআউট
-    <div className='columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4'>
-      {images.map((img) => (
-        <ImageCard key={img._id} image={img} />
+    <div className='columns-2 gap-4 md:columns-3 lg:columns-4'>
+      {images.map((image, index) => (
+        <ImageCard key={image._id} image={image} isPriority={index < 2} />
       ))}
     </div>
   );

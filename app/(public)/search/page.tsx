@@ -44,6 +44,7 @@ async function searchImages(q: string) {
     largeUrl: img.largeUrl,
     mediumUrl: img.mediumUrl,
     thumbnailUrl: img.thumbnailUrl,
+    previewUrl: img.previewUrl,
 
     width: img.width,
     height: img.height,
